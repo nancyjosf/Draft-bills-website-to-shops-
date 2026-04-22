@@ -1,0 +1,49 @@
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap");
+
+:root {
+  --color-cream: #edf7bd;
+  --color-mint: #85c79a;
+  --color-teal: #4e8d9c;
+  --color-navy: #281c59;
+  --surface: #ffffff;
+  --text: #281c59;
+  --danger: #b33951;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "Cairo", "Segoe UI", Tahoma, sans-serif;
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  direction: rtl;
+  text-align: right;
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(133, 199, 154, 0.22),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 90% 20%,
+      rgba(78, 141, 156, 0.2),
+      transparent 32%
+    ),
+    linear-gradient(145deg, var(--color-cream), #f7fbe5);
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+input,
+textarea,
+select {
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: plaintext;
+}
