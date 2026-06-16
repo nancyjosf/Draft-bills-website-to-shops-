@@ -18,6 +18,11 @@ const productSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
+    category: {
+      type: String,
+      enum: ["منظفات", "ورقيات", "مستحضرات تجميل"],
+      default: "منظفات",
+    },
   },
   {
     timestamps: true,

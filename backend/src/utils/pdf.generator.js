@@ -45,175 +45,233 @@ const generateInvoicePdfBuffer = async (invoice) => {
     total = 0,
     paid = 0,
     remaining = 0,
+    _id = "",
   } = invoice;
   const fontPath = getArabicFontPath();
 
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: "A4", margin: 40 });
-    const chunks = [];
+    try {
+      const doc = new PDFDocument({ size: "A4", margin: 30 });
+      const chunks = [];
 
-    doc.on("data", (chunk) => chunks.push(chunk));
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
-    doc.on("error", reject);
+      doc.on("data", (chunk) => chunks.push(chunk));
+      doc.on("end", () => resolve(Buffer.concat(chunks)));
+      doc.on("error", (err) => reject(err));
 
-    if (fontPath) {
-      doc.font(fontPath);
-    }
+      // Set font once at the beginning if available
+      if (fontPath) {
+        try {
+          doc.font(fontPath);
+        } catch (err) {
+          console.warn(
+            "Failed to load Arabic font, using default:",
+            err.message,
+          );
+        }
+      }
 
-    const pageWidth =
-      doc.page.width - doc.page.margins.left - doc.page.margins.right;
-    const contentLeft = doc.page.margins.left;
-    const contentRight = doc.page.width - doc.page.margins.right;
-    const fieldGap = 14;
-    const fieldWidth = (pageWidth - fieldGap) / 2;
+      const pageWidth =
+        doc.page.width - doc.page.margins.left - doc.page.margins.right;
+      const contentLeft = doc.page.margins.left;
+      const contentRight = doc.page.width - doc.page.margins.right;
 
-    const drawField = (x, y, width, label, value) => {
-      doc.lineWidth(1).strokeColor("#000000").rect(x, y, width, 44).stroke();
+      // === HEADER (Title Line) ===
+      doc.fontSize(26).fillColor("#000000");
+      // Right side: اسم المحل
+      doc.text("اسم المحل", contentLeft, 30, {
+        width: pageWidth,
+        align: "right",
+      });
+      // Left side: فاتورة (positioned absolutely on the same line)
+      doc.fontSize(26).text("فاتورة", contentLeft, 30, {
+        width: pageWidth,
+        align: "left",
+      });
 
+      // === INFO SECTION (Two boxes) ===
+      const infoY = 90;
+      const boxWidth = (pageWidth - 15) / 2;
+      const boxHeight = 65;
+
+      // Right box: Customer Details
       doc
-        .fillColor("#000000")
-        .fontSize(10)
-        .text(rtlText(label), x + 10, y + 6, {
-          width: width - 20,
+        .lineWidth(1.5)
+        .strokeColor("#000000")
+        .rect(contentLeft + boxWidth + 15, infoY, boxWidth, boxHeight)
+        .stroke();
+      doc.fontSize(11).fillColor("#000000");
+      doc.text(
+        `اسم العميل: ${rtlText(customerName || "---")}`,
+        contentLeft + boxWidth + 20,
+        infoY + 8,
+        {
+          width: boxWidth - 10,
           align: "right",
-        });
+        },
+      );
+      doc.text(
+        `رقم الهاتف: ${ltrText(String(customerPhone || "0"))}`,
+        contentLeft + boxWidth + 20,
+        infoY + 32,
+        {
+          width: boxWidth - 10,
+          align: "right",
+        },
+      );
 
+      // Left box: Invoice Number & Date
       doc
-        .fillColor("#000000")
-        .fontSize(12)
-        .text(rtlText(value), x + 10, y + 20, {
-          width: width - 20,
+        .lineWidth(1.5)
+        .strokeColor("#000000")
+        .rect(contentLeft, infoY, boxWidth, boxHeight)
+        .stroke();
+      doc.fontSize(11).fillColor("#000000");
+      doc.text(
+        `رقم الفاتورة: ${ltrText(String(_id || "جديدة"))}`,
+        contentLeft + 5,
+        infoY + 8,
+        {
+          width: boxWidth - 10,
           align: "right",
-        });
-    };
-
-    doc
-      .fillColor("#000000")
-      .fontSize(26)
-      .text(rtlText("فاتورة"), doc.page.margins.left, 40, {
+        },
+      );
+      doc.text(`التاريخ: ${formatDate(date)}`, contentLeft + 5, infoY + 32, {
+        width: boxWidth - 10,
         align: "right",
       });
 
-    doc.moveDown(0.7);
-    doc.fontSize(12).fillColor("#000000");
+      // === TABLE SECTION ===
+      const tableY = infoY + boxHeight + 25;
+      const tableHeaderHeight = 28;
+      const tableRowHeight = 28;
+      const columnWidths = [45, 180, 60, 60, 70]; // #, Product, Quantity, Price, Total
+      const columnLabels = ["م", "اسم المنتج", "الكمية", "السعر", "الإجمالي"];
 
-    const firstRowY = doc.y + 8;
-    drawField(
-      contentRight - fieldWidth,
-      firstRowY,
-      fieldWidth,
-      "رقم الفاتورة",
-      ltrText(String(invoice._id || "")),
-    );
-    drawField(contentLeft, firstRowY, fieldWidth, "اسم المشتري", customerName);
-    drawField(
-      contentRight - fieldWidth,
-      firstRowY + 54,
-      fieldWidth,
-      "تاريخ الإصدار",
-      formatDate(date),
-    );
-    drawField(
-      contentLeft,
-      firstRowY + 54,
-      fieldWidth,
-      "رقم الهاتف",
-      ltrText(String(customerPhone || "0")),
-    );
+      // Draw table header
+      let colX = contentLeft;
+      doc.lineWidth(1.5).fillColor("#000000");
 
-    const headerTop = firstRowY + 120;
-    const columns = [
-      { key: "total", label: "الإجمالي", width: 80 },
-      { key: "price", label: "السعر", width: 80 },
-      { key: "quantity", label: "الكمية", width: 70 },
-      { key: "name", label: "المنتج", width: 250 },
-      { key: "index", label: "#", width: 50 },
-    ];
-    const rowHeight = 28;
+      columnWidths.forEach((width, idx) => {
+        // Header cell background (black)
+        doc
+          .rect(colX, tableY, width, tableHeaderHeight)
+          .fillAndStroke("#000000", "#000000");
 
-    let runningX = contentRight;
-    const columnX = columns.map((column) => {
-      runningX -= column.width;
-      return runningX;
-    });
-
-    doc.fillColor("#000000").fontSize(11);
-    columns.forEach((column, index) => {
-      doc
-        .rect(columnX[index], headerTop, column.width, rowHeight)
-        .fillAndStroke("#000000", "#000000");
-      doc
-        .fillColor("#ffffff")
-        .text(rtlText(column.label), columnX[index], headerTop + 8, {
-          width: column.width,
+        // Header text (white)
+        doc.fillColor("#ffffff").fontSize(11);
+        const label = columnLabels[idx];
+        doc.text(label, colX + 2, tableY + 8, {
+          width: width - 4,
           align: "center",
         });
-    });
 
-    let currentY = headerTop + rowHeight;
-    items.forEach((item, index) => {
-      const lineTotal = item.price * item.quantity;
-      const cells = {
-        total: ltrText(formatCurrency(lineTotal)),
-        price: ltrText(formatCurrency(item.price)),
-        quantity: ltrText(String(item.quantity)),
-        name: rtlText(escapeHtml(item.name)),
-        index: ltrText(String(index + 1)),
-      };
-
-      columns.forEach((column, cellIndex) => {
-        doc
-          .rect(columnX[cellIndex], currentY, column.width, rowHeight)
-          .stroke("#000000");
-        doc
-          .fillColor("#000000")
-          .text(cells[column.key], columnX[cellIndex] + 4, currentY + 8, {
-            width: column.width - 8,
-            align: column.key === "name" ? "right" : "center",
-          });
+        colX += width;
       });
 
-      currentY += rowHeight;
-    });
+      // Draw table rows
+      let currentTableY = tableY + tableHeaderHeight;
+      doc.fillColor("#000000").fontSize(10);
 
-    const drawSummaryLine = (label, value, y) => {
-      doc
-        .fontSize(14)
-        .fillColor("#000000")
-        .text(rtlText(label), contentRight - 200, y, {
-          width: 200,
-          align: "right",
+      items.forEach((item, index) => {
+        const lineTotal = item.price * item.quantity;
+        const rowData = [
+          String(index + 1),
+          escapeHtml(item.name),
+          String(item.quantity),
+          formatCurrency(item.price),
+          formatCurrency(lineTotal),
+        ];
+
+        colX = contentLeft;
+        columnWidths.forEach((width, idx) => {
+          // Draw cell border
+          doc
+            .lineWidth(1)
+            .rect(colX, currentTableY, width, tableRowHeight)
+            .stroke("#000000");
+
+          // Draw cell text
+          doc.fontSize(10).fillColor("#000000");
+          const cellText = rowData[idx];
+          doc.text(cellText, colX + 2, currentTableY + 8, {
+            width: width - 4,
+            align: "center",
+          });
+
+          colX += width;
         });
 
+        currentTableY += tableRowHeight;
+      });
+
+      // === SUMMARY SECTION ===
+      const summaryY = currentTableY + 25;
+      const summaryBoxWidth = 220;
+      const summaryBoxHeight = 80;
+
+      // Summary box border
       doc
-        .fontSize(14)
-        .fillColor("#000000")
-        .text(ltrText(value), contentLeft, y, {
-          width: 200,
-          align: "left",
-        });
-    };
+        .lineWidth(1.5)
+        .strokeColor("#000000")
+        .rect(contentLeft, summaryY, summaryBoxWidth, summaryBoxHeight)
+        .stroke();
 
-    const summaryY = currentY + 30;
-    drawSummaryLine("الإجمالي:", `ج.م ${Number(total).toFixed(2)}`, summaryY);
-    drawSummaryLine(
-      "المدفوع:",
-      `ج.م ${Number(paid).toFixed(2)}`,
-      summaryY + 25,
-    );
-    drawSummaryLine(
-      "المتبقي:",
-      `ج.م ${Number(remaining).toFixed(2)}`,
-      summaryY + 50,
-    );
+      const summaryLineHeight = 25;
+      let summaryItemY = summaryY + 5;
 
-    doc
-      .moveTo(contentLeft, summaryY - 5)
-      .lineTo(contentRight, summaryY - 5)
-      .strokeColor("#000000")
-      .stroke();
+      // Total line (bold with border separator)
+      doc
+        .lineWidth(2)
+        .moveTo(contentLeft + 5, summaryItemY + 22)
+        .lineTo(contentLeft + summaryBoxWidth - 5, summaryItemY + 22)
+        .stroke("#000000");
 
-    doc.end();
+      doc.fontSize(13).fillColor("#000000");
+      doc.text("الإجمالي:", contentLeft + 5, summaryItemY, {
+        width: summaryBoxWidth - 10,
+        align: "right",
+      });
+      doc.text(formatCurrency(total), contentLeft + 5, summaryItemY, {
+        width: summaryBoxWidth - 10,
+        align: "left",
+      });
+
+      summaryItemY += summaryLineHeight;
+
+      // Paid line
+      doc.fontSize(11).fillColor("#000000");
+      doc.text("المدفوع:", contentLeft + 5, summaryItemY, {
+        width: summaryBoxWidth - 10,
+        align: "right",
+      });
+      doc.text(formatCurrency(paid), contentLeft + 5, summaryItemY, {
+        width: summaryBoxWidth - 10,
+        align: "left",
+      });
+
+      summaryItemY += summaryLineHeight;
+
+      // Remaining line
+      doc.text("المتبقي:", contentLeft + 5, summaryItemY, {
+        width: summaryBoxWidth - 10,
+        align: "right",
+      });
+      doc.text(formatCurrency(remaining), contentLeft + 5, summaryItemY, {
+        width: summaryBoxWidth - 10,
+        align: "left",
+      });
+
+      // === FOOTER ===
+      doc.fontSize(11).fillColor("#000000");
+      doc.text("شكراً لتعاملكم معنا", contentLeft, doc.page.height - 45, {
+        width: pageWidth,
+        align: "center",
+      });
+
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
   });
 };
 

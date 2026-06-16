@@ -9,10 +9,19 @@ export class ProductService {
 
 	constructor(private http: HttpClient) {}
 
-	getAll(search = ""): Observable<Product[]> {
-		const query = search.trim();
-		const url = query
-			? `${this.baseUrl}?search=${encodeURIComponent(query)}`
+	getAll(search = "", category?: string): Observable<Product[]> {
+		const query: string[] = [];
+		
+		if (search.trim()) {
+			query.push(`search=${encodeURIComponent(search.trim())}`);
+		}
+			
+		if (category && category.trim()) {
+			query.push(`category=${encodeURIComponent(category.trim())}`);
+		}
+		
+		const url = query.length > 0 
+			? `${this.baseUrl}?${query.join("&")}`
 			: this.baseUrl;
 
 		return this.http.get<Product[]>(url).pipe(catchError((error) => this.handleApiError(error)));

@@ -3,7 +3,7 @@ import { FormBuilder, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { finalize } from "rxjs";
 import { ProductService } from "../../../core/services/product.service";
-import { Product } from "../../../models/product.model";
+import { Product, PRODUCT_CATEGORIES } from "../../../models/product.model";
 
 @Component({
 	selector: "app-product-form",
@@ -29,6 +29,15 @@ import { Product } from "../../../models/product.model";
 				<label>
 					الكمية
 					<input type="number" formControlName="quantity" min="0" placeholder="0" />
+				</label>
+
+				<label>
+					الفئة
+					<select formControlName="category">
+						<option value="منظفات">منظفات</option>
+						<option value="ورقيات">ورقيات</option>
+						<option value="مستحضرات تجميل">مستحضرات تجميل</option>
+					</select>
 				</label>
 
 				<button class="primary" type="submit" [disabled]="form.invalid || isLoading">
@@ -89,13 +98,27 @@ import { Product } from "../../../models/product.model";
 				display: grid;
 				gap: 0.35rem;
 				font-weight: 600;
+				color: var(--color-navy);
 			}
 
-			input {
+			input,
+			select {
 				padding: 0.62rem 0.75rem;
 				border-radius: 10px;
 				border: 1px solid rgba(40, 28, 89, 0.24);
 				outline: none;
+				background: #fff;
+				color: var(--color-navy);
+				font-family: inherit;
+			}
+
+			select {
+				cursor: pointer;
+			}
+
+			select option {
+				background: #fff;
+				color: var(--color-navy);
 			}
 
 			button {
@@ -125,11 +148,13 @@ export class ProductFormComponent implements OnInit {
 	errorMessage = "";
 	successMessage = "";
 	private productId: string | null = null;
+	categories = PRODUCT_CATEGORIES;
 
 	form = this.fb.nonNullable.group({
 		name: ["", [Validators.required, Validators.minLength(2)]],
 		price: [0, [Validators.required, Validators.min(0)]],
 		quantity: [0, [Validators.required, Validators.min(0)]],
+		category: ["منظفات", [Validators.required]],
 	});
 
 	constructor(
@@ -157,6 +182,7 @@ export class ProductFormComponent implements OnInit {
 					name: product.name,
 					quantity: product.quantity || 0,
 					price: product.price,
+					category: product.category || "منظفات",
 				}),
 			error: (err: unknown) => {
 				console.error("فشل تحميل المنتج للتعديل", err);
@@ -170,7 +196,13 @@ export class ProductFormComponent implements OnInit {
 			return;
 		}
 
-		const payload = this.form.getRawValue();
+		const rawValue = this.form.getRawValue();
+		const payload: Omit<Product, "_id"> = {
+			name: rawValue.name,
+			price: rawValue.price,
+			quantity: rawValue.quantity,
+			category: rawValue.category as any,
+		};
 		const request$ =
 			this.editMode && this.productId
 				? this.productService.update(this.productId, payload)

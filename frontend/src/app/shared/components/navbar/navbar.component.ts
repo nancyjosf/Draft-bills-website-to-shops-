@@ -4,7 +4,10 @@ import { Component } from "@angular/core";
 	selector: "app-navbar",
 	template: `
 		<nav class="navbar">
-			<h1>إدارة المتجر</h1>
+			<div class="logo-section">
+				<img src="assets/images/cosmetics-svgrepo-com (2).svg" alt="Logo" class="logo" />
+				<h1>إدارة المتجر</h1>
+			</div>
 			<div class="links">
 				<a routerLink="/products" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">المنتجات</a>
 				<a routerLink="/products/new" routerLinkActive="active">إضافة منتج</a>
@@ -22,6 +25,18 @@ import { Component } from "@angular/core";
 				gap: 1rem;
 				padding: 1rem 1.2rem;
 				background: linear-gradient(90deg, var(--color-navy), #3a2876);
+			}
+
+			.logo-section {
+				display: flex;
+				align-items: center;
+				gap: 0.75rem;
+			}
+
+			.logo {
+				height: 40px;
+				width: 40px;
+				filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 			}
 
 			h1 {

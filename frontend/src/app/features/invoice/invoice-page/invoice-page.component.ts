@@ -6,7 +6,8 @@ import {
 	InvoiceService,
 } from "../../../core/services/invoice.service";
 import { InvoiceCartService } from "../../../core/services/invoice-cart.service";
-import { finalize, map, switchMap } from "rxjs";
+import { finalize, from, map, switchMap } from "rxjs";
+import { InvoicePdfExportService } from "../../../core/services/invoice-pdf-export.service";
 
 @Component({
 	selector: "app-invoice-page",
@@ -155,6 +156,7 @@ import { finalize, map, switchMap } from "rxjs";
 					</div>
 				</div>
 			</section>
+
 		</div>
 	`,
 	styles: [
@@ -492,13 +494,18 @@ export class InvoicePageComponent implements OnInit {
 	customerPhone = "";
 	paidAmount = 0;
 	lastInvoiceDate = "";
+	lastInvoiceId = "";
 	isLoading = false;
 	errorMessage = "";
 	successMessage = "";
 	showPreview = false;
 	today = new Date();
 
-	constructor(private invoiceService: InvoiceService, private invoiceCartService: InvoiceCartService) {}
+	constructor(
+		private invoiceService: InvoiceService,
+		private invoiceCartService: InvoiceCartService,
+		private invoicePdfExportService: InvoicePdfExportService,
+	) {}
 
 	ngOnInit(): void {
 		this.cartItems = this.invoiceCartService.getItems();
@@ -567,21 +574,13 @@ export class InvoicePageComponent implements OnInit {
 			.pipe(
 				switchMap((invoice: InvoiceResponse) => {
 					this.lastInvoiceDate = invoice.date;
-					return this.invoiceService
-						.generatePdfByInvoiceId(invoice._id)
-						.pipe(map((blob: Blob) => ({ blob, invoiceId: invoice._id })));
+					this.lastInvoiceId = invoice._id;
+					return from(this.invoicePdfExportService.exportInvoice(invoice, `invoice-${invoice._id}.pdf`)).pipe(map(() => ({ invoiceId: invoice._id })));
 				})
 			)
 			.pipe(finalize(() => (this.isLoading = false)))
 			.subscribe({
-			next: ({ blob, invoiceId }: { blob: Blob; invoiceId: string }) => {
-				const pdfBlob = blob.type === "application/pdf" ? blob : new Blob([blob], { type: "application/pdf" });
-				const url = URL.createObjectURL(pdfBlob);
-				const link = document.createElement("a");
-				link.href = url;
-				link.download = `invoice-${invoiceId}.pdf`;
-				link.click();
-				setTimeout(() => URL.revokeObjectURL(url), 60000);
+			next: ({ invoiceId }: { invoiceId: string }) => {
 				this.successMessage = "تم إنشاء الفاتورة وتحميل الملف بنجاح.";
 				this.invoiceCartService.clear();
 				this.customerName = "";

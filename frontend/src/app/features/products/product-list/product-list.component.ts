@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { ProductService } from "../../../core/services/product.service";
 import { InvoiceCartService } from "../../../core/services/invoice-cart.service";
-import { Product } from "../../../models/product.model";
+import { Product, PRODUCT_CATEGORIES, ProductCategory } from "../../../models/product.model";
 import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from "rxjs";
 
 @Component({
@@ -14,7 +14,25 @@ import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from
 				<p>يمكنك إدارة قائمة المنتجات عبر التعديل والحذف.</p>
 			</header>
 
-			<input type="text" [(ngModel)]="search" placeholder="ابحث باسم المنتج" class="search" />
+			<div class="filter-section">
+				<div class="category-filter">
+					<button 
+						class="chip" 
+						[class.active]="!selectedCategory"
+						(click)="selectCategory(null)">
+						جميع المنتجات
+					</button>
+					<button 
+						*ngFor="let category of categories"
+						class="chip" 
+						[class.active]="selectedCategory === category"
+						(click)="selectCategory(category)">
+						{{ category }}
+					</button>
+				</div>
+
+				<input type="text" [(ngModel)]="search" placeholder="ابحث باسم المنتج" class="search" />
+			</div>
 
 			<p class="feedback loading" *ngIf="isLoading">جاري تحميل البيانات...</p>
 			<p class="feedback success" *ngIf="successMessage">{{ successMessage }}</p>
@@ -24,6 +42,7 @@ import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from
 				<thead>
 					<tr>
 						<th>اسم المنتج</th>
+						<th>الفئة</th>
 						<th>السعر</th>
 						<th>الفاتورة</th>
 						<th>الإجراءات</th>
@@ -32,6 +51,7 @@ import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from
 				<tbody>
 					<tr *ngFor="let product of products">
 						<td>{{ product.name }}</td>
+						<td><span class="category-badge" [class]="'category-' + (product.category || 'منظفات')">{{ product.category || 'منظفات' }}</span></td>
 						<td>{{ product.price | currency: 'EGP':'symbol':'1.2-2':'ar-EG' }}</td>
 						<td>
 							<button class="add-invoice" (click)="addToInvoice(product)">أضف للفاتورة</button>
@@ -42,7 +62,7 @@ import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from
 						</td>
 					</tr>
 					<tr *ngIf="!isLoading && products.length === 0">
-						<td colspan="4" class="empty">لا توجد منتجات مطابقة.</td>
+						<td colspan="5" class="empty">لا توجد منتجات مطابقة.</td>
 					</tr>
 				</tbody>
 			</table>
@@ -70,10 +90,43 @@ import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from
 				font-size: 0.95rem;
 			}
 
+			.filter-section {
+				margin-bottom: 1.2rem;
+			}
+
+			.category-filter {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.6rem;
+				margin-bottom: 1rem;
+			}
+
+			.chip {
+				padding: 0.5rem 1rem;
+				border-radius: 20px;
+				border: 1.5px solid rgba(78, 141, 156, 0.4);
+				background: #fff;
+				color: var(--color-navy);
+				cursor: pointer;
+				font-weight: 600;
+				font-size: 0.9rem;
+				transition: all 0.3s ease;
+			}
+
+			.chip:hover {
+				border-color: var(--color-teal);
+				background: rgba(78, 141, 156, 0.1);
+			}
+
+			.chip.active {
+				background: var(--color-teal);
+				color: #fff;
+				border-color: var(--color-teal);
+			}
+
 			.search {
 				width: 100%;
 				max-width: 400px;
-				margin-bottom: 1rem;
 				padding: 0.65rem 0.75rem;
 				border-radius: 10px;
 				border: 1px solid rgba(40, 28, 89, 0.24);
@@ -120,6 +173,31 @@ import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from
 				background: rgba(133, 199, 154, 0.28);
 			}
 
+			.category-badge {
+				display: inline-block;
+				padding: 0.4rem 0.8rem;
+				border-radius: 12px;
+				font-size: 0.85rem;
+				font-weight: 600;
+				text-align: center;
+				min-width: 110px;
+			}
+
+			.category-منظفات {
+				background: rgba(78, 141, 156, 0.2);
+				color: var(--color-teal);
+			}
+
+			.category-ورقيات {
+				background: rgba(156, 39, 176, 0.15);
+				color: #9c27b0;
+			}
+
+			.category-مستحضرات {
+				background: rgba(255, 152, 0, 0.15);
+				color: #ff9800;
+			}
+
 			.actions {
 				display: flex;
 				gap: 0.5rem;
@@ -160,6 +238,17 @@ import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from
 				background: var(--color-navy);
 				color: #fff;
 			}
+
+			@media (max-width: 768px) {
+				.search {
+					max-width: 100%;
+				}
+
+				.chip {
+					font-size: 0.85rem;
+					padding: 0.45rem 0.85rem;
+				}
+			}
 		`,
 	],
 })
@@ -169,6 +258,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
 	isDeleting = false;
 	errorMessage = "";
 	successMessage = "";
+	selectedCategory: ProductCategory | null = null;
+	categories = PRODUCT_CATEGORIES;
 	private _search = "";
 	private searchChange$ = new Subject<string>();
 	private destroy$ = new Subject<void>();
@@ -203,13 +294,18 @@ export class ProductListComponent implements OnInit, OnDestroy {
 		this.destroy$.complete();
 	}
 
+	selectCategory(category: ProductCategory | null): void {
+		this.selectedCategory = category;
+		this.loadProducts(this.search);
+	}
+
 	loadProducts(search = ""): void {
 		this.isLoading = true;
 		this.errorMessage = "";
 		this.successMessage = "";
 
 		this.productService
-			.getAll(search)
+			.getAll(search, this.selectedCategory || undefined)
 			.pipe(takeUntil(this.destroy$))
 			.pipe(finalize(() => (this.isLoading = false)))
 			.subscribe({

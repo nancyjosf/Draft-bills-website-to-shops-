@@ -24,13 +24,17 @@ const toFlexibleArabicPattern = (value = "") => {
     .join("");
 };
 
-const listProducts = async (search = "") => {
+const listProducts = async (search = "", category = "") => {
   const term = search.trim();
-  const filter = term
-    ? {
-        name: { $regex: toFlexibleArabicPattern(term), $options: "i" },
-      }
-    : {};
+  const filter = {};
+
+  if (term) {
+    filter.name = { $regex: toFlexibleArabicPattern(term), $options: "i" };
+  }
+
+  if (category && category.trim()) {
+    filter.category = category.trim();
+  }
 
   return Product.find(filter).sort({ createdAt: -1 }).lean();
 };

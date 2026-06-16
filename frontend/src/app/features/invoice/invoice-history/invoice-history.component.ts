@@ -1,6 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { finalize } from "rxjs";
 import { InvoiceResponse, InvoiceService } from "../../../core/services/invoice.service";
+import { InvoicePdfExportService } from "../../../core/services/invoice-pdf-export.service";
 
 @Component({
   selector: "app-invoice-history",
@@ -125,7 +126,10 @@ export class InvoiceHistoryComponent implements OnInit {
   isLoading = false;
   errorMessage = "";
 
-  constructor(private invoiceService: InvoiceService) {}
+  constructor(
+    private invoiceService: InvoiceService,
+    private invoicePdfExportService: InvoicePdfExportService,
+  ) {}
 
   ngOnInit(): void {
     this.loadInvoices();
@@ -148,20 +152,9 @@ export class InvoiceHistoryComponent implements OnInit {
   }
 
   downloadPdf(invoice: InvoiceResponse): void {
-    this.invoiceService.generatePdfByInvoiceId(invoice._id).subscribe({
-      next: (blob: Blob) => {
-        const pdfBlob = blob.type === "application/pdf" ? blob : new Blob([blob], { type: "application/pdf" });
-        const url = URL.createObjectURL(pdfBlob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `invoice-${invoice._id}.pdf`;
-        link.click();
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
-      },
-      error: (err: unknown) => {
-        console.error("فشل تحميل ملف الفاتورة", err);
-        this.errorMessage = err instanceof Error ? err.message : "فشل تحميل ملف الفاتورة.";
-      },
+    this.invoicePdfExportService.exportInvoice(invoice, `invoice-${invoice._id}.pdf`).catch((err: unknown) => {
+      console.error("فشل تحميل ملف الفاتورة", err);
+      this.errorMessage = err instanceof Error ? err.message : "فشل تحميل ملف الفاتورة.";
     });
   }
 
