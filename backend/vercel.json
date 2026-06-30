@@ -8,7 +8,15 @@
   ],
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/api/health",
+      "dest": "server.js"
+    },
+    {
+      "src": "/api/products(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/api/invoices(.*)",
       "dest": "server.js"
     }
   ]
