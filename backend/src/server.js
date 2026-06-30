@@ -26,5 +26,5 @@ const startServer = async () => {
     process.exit(1);
   }
 };
-
 startServer();
+module.exports = app;
