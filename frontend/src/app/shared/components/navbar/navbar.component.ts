@@ -71,7 +71,9 @@ import { Component } from "@angular/core";
 				.navbar {
 					flex-direction: column;
 					align-items: center;
-					gap: 0.8rem;
+					justify-content: center;
+					gap: 1rem;
+					padding: 1.5rem 1rem;
 				}
 
 				.links {
