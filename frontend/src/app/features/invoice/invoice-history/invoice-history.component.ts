@@ -13,32 +13,34 @@ import { InvoicePdfExportService } from "../../../core/services/invoice-pdf-expo
       <p class="feedback loading" *ngIf="isLoading">جاري تحميل سجل الفواتير...</p>
       <p class="feedback error" *ngIf="errorMessage">{{ errorMessage }}</p>
 
-      <table class="table" *ngIf="!isLoading && invoices.length > 0">
-        <thead>
-          <tr>
-            <th>رقم الفاتورة</th>
-            <th>اسم المشتري</th>
-            <th>الإجمالي</th>
-            <th>المدفوع</th>
-            <th>المتبقي</th>
-            <th>الوقت</th>
-            <th>PDF</th>
-            <th>حذف</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let invoice of invoices">
-            <td>{{ invoice._id.slice(-6) }}</td>
-            <td>{{ invoice.customerName }}</td>
-            <td>{{ invoice.total | currency: 'EGP':'symbol':'1.2-2':'ar-EG' }}</td>
-            <td>{{ invoice.paid | currency: 'EGP':'symbol':'1.2-2':'ar-EG' }}</td>
-            <td>{{ invoice.remaining | currency: 'EGP':'symbol':'1.2-2':'ar-EG' }}</td>
-            <td>{{ invoice.date | date: 'short':'':'ar-EG' }}</td>
-            <td><button class="export" (click)="downloadPdf(invoice)">تحميل</button></td>
-            <td><button class="danger" (click)="deleteInvoice(invoice)">حذف</button></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-responsive" *ngIf="!isLoading && invoices.length > 0">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>رقم الفاتورة</th>
+              <th>اسم المشتري</th>
+              <th>الإجمالي</th>
+              <th>المدفوع</th>
+              <th>المتبقي</th>
+              <th>الوقت</th>
+              <th>PDF</th>
+              <th>حذف</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let invoice of invoices">
+              <td>{{ invoice._id.slice(-6) }}</td>
+              <td>{{ invoice.customerName }}</td>
+              <td>{{ invoice.total | currency: 'EGP':'symbol':'1.2-2':'ar-EG' }}</td>
+              <td>{{ invoice.paid | currency: 'EGP':'symbol':'1.2-2':'ar-EG' }}</td>
+              <td>{{ invoice.remaining | currency: 'EGP':'symbol':'1.2-2':'ar-EG' }}</td>
+              <td>{{ invoice.date | date: 'short':'':'ar-EG' }}</td>
+              <td><button class="export" (click)="downloadPdf(invoice)">تحميل</button></td>
+              <td><button class="danger" (click)="deleteInvoice(invoice)">حذف</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <p class="empty" *ngIf="!isLoading && invoices.length === 0">لا توجد فواتير حتى الآن.</p>
     </section>

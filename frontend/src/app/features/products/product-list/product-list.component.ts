@@ -38,34 +38,36 @@ import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from
 			<p class="feedback success" *ngIf="successMessage">{{ successMessage }}</p>
 			<p class="feedback error" *ngIf="errorMessage">{{ errorMessage }}</p>
 
-			<table class="table">
-				<thead>
-					<tr>
-						<th>اسم المنتج</th>
-						<th>الفئة</th>
-						<th>السعر</th>
-						<th>الفاتورة</th>
-						<th>الإجراءات</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr *ngFor="let product of products">
-						<td>{{ product.name }}</td>
-						<td><span class="category-badge" [class]="'category-' + (product.category || 'منظفات')">{{ product.category || 'منظفات' }}</span></td>
-						<td>{{ product.price | currency: 'EGP':'symbol':'1.2-2':'ar-EG' }}</td>
-						<td>
-							<button class="add-invoice" (click)="addToInvoice(product)">أضف للفاتورة</button>
-						</td>
-						<td class="actions">
-							<button class="secondary" (click)="edit(product)">تعديل</button>
-							<button class="danger" (click)="remove(product)" [disabled]="isDeleting">حذف</button>
-						</td>
-					</tr>
-					<tr *ngIf="!isLoading && products.length === 0">
-						<td colspan="5" class="empty">لا توجد منتجات مطابقة.</td>
-					</tr>
-				</tbody>
-			</table>
+			<div class="table-responsive">
+				<table class="table">
+					<thead>
+						<tr>
+							<th>اسم المنتج</th>
+							<th>الفئة</th>
+							<th>السعر</th>
+							<th>الفاتورة</th>
+							<th>الإجراءات</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngFor="let product of products">
+							<td>{{ product.name }}</td>
+							<td><span class="category-badge" [class]="'category-' + (product.category || 'منظفات')">{{ product.category || 'منظفات' }}</span></td>
+							<td>{{ product.price | currency: 'EGP':'symbol':'1.2-2':'ar-EG' }}</td>
+							<td>
+								<button class="add-invoice" (click)="addToInvoice(product)">أضف للفاتورة</button>
+							</td>
+							<td class="actions">
+								<button class="secondary" (click)="edit(product)">تعديل</button>
+								<button class="danger" (click)="remove(product)" [disabled]="isDeleting">حذف</button>
+							</td>
+						</tr>
+						<tr *ngIf="!isLoading && products.length === 0">
+							<td colspan="5" class="empty">لا توجد منتجات مطابقة.</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 
 			<button class="go-invoice" (click)="goToInvoice()">الانتقال إلى صفحة الفاتورة</button>
 		</section>

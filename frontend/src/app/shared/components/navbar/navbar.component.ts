@@ -70,11 +70,19 @@ import { Component } from "@angular/core";
 			@media (max-width: 760px) {
 				.navbar {
 					flex-direction: column;
-					align-items: flex-end;
+					align-items: center;
+					gap: 0.8rem;
 				}
 
 				.links {
 					flex-wrap: wrap;
+					justify-content: center;
+					gap: 0.5rem;
+				}
+
+				a {
+					font-size: 0.85rem;
+					padding: 0.35rem 0.6rem;
 				}
 			}
 		`,

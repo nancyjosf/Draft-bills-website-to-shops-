@@ -39,36 +39,38 @@ import { InvoicePdfExportService } from "../../../core/services/invoice-pdf-expo
 				</div>
 
 				<h3>سلة الفاتورة</h3>
-				<table class="table" *ngIf="cartItems.length > 0; else emptyCart">
-					<thead>
-						<tr>
-							<th>المنتج</th>
-							<th>السعر</th>
-							<th>الكمية</th>
-							<th>الإجمالي</th>
-							<th>حذف</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr *ngFor="let item of cartItems">
-							<td>{{ item.name }}</td>
-							<td>{{ item.price | currency: 'EGP':'symbol':'1.2-2':'ar-EG' }}</td>
-							<td>
-								<input
-									type="number"
-									min="1"
-									[max]="maxQuantity(item.productId)"
-									[(ngModel)]="item.quantity"
-									(ngModelChange)="onCartQuantityChange(item)"
-								/>
-							</td>
-							<td>{{ item.price * item.quantity | currency: 'EGP':'symbol':'1.2-2':'ar-EG' }}</td>
-							<td>
-								<button class="remove-btn" (click)="removeFromCart(item.productId)">حذف</button>
-							</td>
-						</tr>
-					</tbody>
-				</table>
+				<div class="table-responsive" *ngIf="cartItems.length > 0; else emptyCart">
+					<table class="table">
+						<thead>
+							<tr>
+								<th>المنتج</th>
+								<th>السعر</th>
+								<th>الكمية</th>
+								<th>الإجمالي</th>
+								<th>حذف</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr *ngFor="let item of cartItems">
+								<td>{{ item.name }}</td>
+								<td>{{ item.price | currency: 'EGP':'symbol':'1.2-2':'ar-EG' }}</td>
+								<td>
+									<input
+										type="number"
+										min="1"
+										[max]="maxQuantity(item.productId)"
+										[(ngModel)]="item.quantity"
+										(ngModelChange)="onCartQuantityChange(item)"
+									/>
+								</td>
+								<td>{{ item.price * item.quantity | currency: 'EGP':'symbol':'1.2-2':'ar-EG' }}</td>
+								<td>
+									<button class="remove-btn" (click)="removeFromCart(item.productId)">حذف</button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 
 				<ng-template #emptyCart>
 					<p class="empty">السلة فارغة. أضف المنتجات من صفحة المنتجات.</p>

@@ -18,9 +18,15 @@ import { Component } from "@angular/core";
         background: rgba(255, 255, 255, 0.88);
         border: 1px solid rgba(40, 28, 89, 0.14);
         border-radius: 20px;
-        overflow: hidden;
         box-shadow: 0 18px 45px rgba(40, 28, 89, 0.14);
       }
+
+      .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
 
       .page-content {
         padding: 1.1rem;
