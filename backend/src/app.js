@@ -15,6 +15,7 @@ app.get("/api/health", (_req, res) => {
 
 app.use("/api/products", productRoutes);
 app.use("/api/invoices", invoiceRoutes);
+app.use("/api/invoice", invoiceRoutes);
 app.use("/products", productRoutes);
 app.use("/invoice", invoiceRoutes);
 

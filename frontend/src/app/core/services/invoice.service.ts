@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { Observable, catchError, throwError } from "rxjs";
 import { Product } from "../../models/product.model";
+import { environment } from "../../../environments/environment";
 
 export interface CartItem {
 	productId: string;
@@ -36,7 +37,7 @@ export interface InvoicePayload {
 
 @Injectable({ providedIn: "root" })
 export class InvoiceService {
-	private readonly baseUrl = "http://localhost:5000/invoice";
+	private readonly baseUrl = `${environment.apiUrl}/invoice`;
 
 	constructor(private http: HttpClient) {}
 
