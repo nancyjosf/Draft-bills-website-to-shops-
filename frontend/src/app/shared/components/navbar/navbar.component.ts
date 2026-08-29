@@ -6,7 +6,7 @@ import { Component } from "@angular/core";
 		<nav class="navbar">
 			<div class="logo-section">
 				<img src="assets/images/cosmetics-svgrepo-com (2).svg" alt="Logo" class="logo" />
-				<h1>إدارة المتجر</h1>
+				<h1>Super Clean</h1>
 			</div>
 			<div class="links">
 				<a routerLink="/products" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">المنتجات</a>

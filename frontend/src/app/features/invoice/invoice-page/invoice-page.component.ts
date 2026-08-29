@@ -98,7 +98,7 @@ import { InvoicePdfExportService } from "../../../core/services/invoice-pdf-expo
 				<div class="invoice-print" dir="rtl">
 					<!-- Header -->
 					<div class="invoice-header">
-						<div class="store-name">اسم المحل</div>
+						<div class="store-name">Super Clean</div>
 						<div class="invoice-title">فاتورة</div>
 					</div>
 

@@ -189,7 +189,7 @@ export class InvoicePdfExportService {
 
 			<div class="invoice-container">
 				<div class="invoice-header">
-					<div class="store-name">اسم المحل</div>
+					<div class="store-name">Super Clean</div>
 					<div class="invoice-title">فاتورة</div>
 				</div>
 
