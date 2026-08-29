@@ -1,28 +1,28 @@
 {
-"services": {
-"frontend": {
-"root": "frontend",
-"framework": "angular"
-},
-"backend": {
-"root": "backend",
-"entrypoint": "src/server.js"
-}
-},
-"rewrites": [
-{
-"source": "/api(/.*)?",
-"destination": {
-"type": "service",
-"service": "backend"
-}
-},
-{
-"source": "/(.*)",
-"destination": {
-"type": "service",
-"service": "frontend"
-}
-}
-]
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/store-frontend"
+      }
+    },
+    {
+      "src": "backend/src/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/backend/src/server.js"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
 }
